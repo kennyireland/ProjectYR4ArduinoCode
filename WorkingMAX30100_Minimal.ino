@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <Wire.h>
-#include <Wifi.h>
-#include <HTTPCLIENT.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include "MAX30100_PulseOximeter.h"
 
 #define REPORTING_PERIOD_MS     1000
@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const char* ssid = "Kenphone";
 const char* password = "tcsv6hi7bsdd548";
 
-//server url i need to replace with my servet url or ip
-const char* serveUrl = "http://172.24.32.1:8000/sensor-data";
+//server url i needed to replace with my servet url 
+const char* serverUrl = "http://192.168.43.99:8000/api/sensor-data";
 
 // PulseOximeter is the higher level interface to the sensor
 // it offers:
@@ -85,44 +85,49 @@ void loop()
     // Asynchronously dump heart rate and oxidation levels to the serial
     // For both, a value of 0 means "invalid"
     if (millis() - tsLastReport > REPORTING_PERIOD_MS) {
+        float heartrate = pox.getHeartRate();
+        float spo2 = pox.getSpO2();
+
         Serial.print("Heart rate:");
-        Serial.print(pox.getHeartRate());
+        //Serial.print(pox.getHeartRate());
+        Serial.print(heartrate),
         Serial.print("bpm / SpO2:");
-        Serial.print(pox.getSpO2());
+        //Serial.print(pox.getSpO2());
+        Serial.print(spo2);
         Serial.println("%");
 
         tsLastReport = millis();
 
-        // send heart rate data to server
-        sendToServer(heartRate);
+        // Send heart rate data to server
+        sendToServer(heartrate);
     }
 
 
-  delay(1000); //wait for 1 second before reading again
+  delay(1000); // Wait for 1 second before reading again
 
 }
-//function to send heartrate to server 
+// Function to send heartrate to server 
 
-void sendToServer(float heartRate){
+void sendToServer(float heartrate){
   HTTPClient http;
 
-  // start the http request to the server
+  //Start the http request to the server
   http.begin(serverUrl);
   http.addHeader("Content-Type", "application/json");
 
-  //prepare JSON payload withthee heartrate data
-  String payload = "{\"heartrate\": " + String(heartrate) + "}";
+  // Ready JSON payload with the heartrate data
+  String payload = "{\"heartrate\": " + String(heartrate) + ", \"accelerometer\": {\"X\": 0, \"Y\": 0, \"Z\": 0}}";
 
-  //send the post request
-  int httpResponceCode = http.POST(payload);
+  // Send the post request
+  int httpResponseCode = http.POST(payload);
 
-  //check for responce 
-  if (httpResponceCode > 0) {
-    Serial.print("Data sent succesfully, Responce code: ");
-    Serial.println(httpResponceCode);
+  // Check for response 
+  if (httpResponseCode > 0) {
+    Serial.print("Data sent succesfully, Response code: ");
+    Serial.println(httpResponseCode);
   }else {
-    Serial.print("Error sending data, Responce code: ");
-    Serial.println(httpResponceCode);
+    Serial.print("Error sending data, Response code: ");
+    Serial.println(httpResponseCode);
   }
 
     // end the http connection
