@@ -21,15 +21,15 @@
 //#include "camera_pins.h"
 
 // ===========================
-// Enter your WiFi credentials
+// WiFi credentials
 // ===========================
 const char *ssid = "Kenphone";
 const char *password = "tcsv6hi7bsdd548";
 
-const char* cameraUrl = "http://your-server.com/upload";
+const char* cameraUrl = "http://192.168.148.99:8000/api/camera-upload";
 
 //void startCameraServer();
-void setupLedFlash(int pin);
+//void setupLedFlash(int pin);
 
 void setup() {
   Serial.begin(115200);
@@ -116,12 +116,12 @@ void setup() {
 #if defined(CAMERA_MODEL_ESP32S3_EYE)
   s->set_vflip(s, 1);
 #endif
-*/
+
 // Setup LED FLash if LED pin is defined in camera_pins.h
 #if defined(LED_GPIO_NUM)
   setupLedFlash(LED_GPIO_NUM);
 #endif
-
+*/
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);
 
@@ -135,13 +135,14 @@ void setup() {
 
   //startCameraServer();
 
-  Serial.print("Camera Ready! Use 'http://");
+  Serial.print("ESP32 connected with IP address: 'http://");
   Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
+  //Serial.println("' to connect");
 }
 
 void loop() {
   // Do nothing. Everything is done in another task by the web server
+  captureImageAndSend(); // call it every 10s
   delay(10000);
 }
 
